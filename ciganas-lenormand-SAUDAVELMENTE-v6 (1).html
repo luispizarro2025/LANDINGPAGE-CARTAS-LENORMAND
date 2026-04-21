@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciganas Lenormand — Leitura Online de Cartas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1008;
+  --gold: #c9933a;
+  --gold-light: #e8c476;
+  --gold-pale: #f5e6c0;
+  --smoke: #f0ead8;
+  --velvet: #2c1810;
+  --cream: #faf5e8;
+  --rose: #8b3a3a;
+  --mystic: #3d2b5e;
+  --mystic-light: #6b4d9e;
+  --shadow: rgba(26,16,8,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Cormorant Garamond', serif;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+  line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════════════
+   NOISE TEXTURE OVERLAY
+═══════════════════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════════ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 48px;
+  background: rgba(250, 245, 232, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(201,147,58,0.2);
+}
+
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--velvet);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover { color: var(--gold); }
+
+.nav-cta {
+  background: var(--gold);
+  color: var(--cream) !important;
+  padding: 8px 22px;
+  border-radius: 2px;
+  transition: background 0.3s !important;
+}
+.nav-cta:hover { background: var(--velvet) !important; color: var(--gold-pale) !important; }
+
+/* ═══════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(201,147,58,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(61,43,94,0.06) 0%, transparent 60%),
+    var(--cream);
+}
+
+.hero-eyebrow {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.3s;
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--velvet);
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.6s;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--gold);
+  display: block;
+}
+
+.hero-sub {
+  font-family: 'IM Fell English', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-style: italic;
+  color: var(--mystic);
+  max-width: 580px;
+  margin: 0 auto 48px;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.9s;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 1.2s;
+}
+
+.btn-primary {
+  display: inline-block;
+  background: var(--velvet);
+  color: var(--gold-pale);
+  padding: 16px 40px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid var(--velvet);
+  transition: all 0.3s;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.btn-primary:hover {
+  background: transparent;
+  color: var(--velvet);
+}
+
+.btn-secondary {
+  display: inline-block;
+  background: transparent;
+  color: var(--velvet);
+  padding: 16px 40px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid var(--gold);
+  transition: all 0.3s;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.btn-secondary:hover {
+  background: var(--gold);
+  color: var(--cream);
+}
+
+.hero-ornament {
+  position: absolute;
+  font-size: 120px;
+  opacity: 0.04;
+  font-family: serif;
+  pointer-events: none;
+  user-select: none;
+}
+.hero-ornament:nth-child(1) { top: 15%; left: 5%; }
+.hero-ornament:nth-child(2) { bottom: 20%; right: 5%; transform: rotate(180deg); }
+
+.divider-ornament {
+  text-align: center;
+  color: var(--gold);
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  margin: 60px auto;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════
+   SECTIONS
+═══════════════════════════════════════════════ */
+section {
+  position: relative;
+  z-index: 1;
+}
+
+.section-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  color: var(--velvet);
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+/* ═══════════════════════════════════════════════
+   READING TOOL SECTION
+═══════════════════════════════════════════════ */
+#tiragem {
+  padding: 100px 24px;
+  background: var(--velvet);
+  color: var(--cream);
+}
+
+.reading-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#tiragem .section-label { color: var(--gold-light); }
+#tiragem .section-title { color: var(--gold-pale); }
+
+.reading-desc {
+  font-size: 1.1rem;
+  color: rgba(240,234,216,0.8);
+  max-width: 600px;
+  margin: 0 auto 48px;
+  font-style: italic;
+}
+
+.tiragem-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 48px;
+  border: 1px solid rgba(201,147,58,0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 600px;
+  margin: 0 auto 48px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 20px;
+  background: transparent;
+  color: rgba(240,234,216,0.6);
+  border: none;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-right: 1px solid rgba(201,147,58,0.3);
+}
+
+.tab-btn:last-child { border-right: none; }
+
+.tab-btn.active {
+  background: var(--gold);
+  color: var(--velvet);
+}
+
+.tab-btn:hover:not(.active) { color: var(--gold-light); }
+
+.cards-display {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+  min-height: 220px;
+  align-items: center;
+}
+
+.card-slot {
+  width: 110px;
+  height: 175px;
+  border: 2px dashed rgba(201,147,58,0.3);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-slot.revealed {
+  border: 2px solid var(--gold);
+  background: linear-gradient(135deg, var(--gold) 0%, #a67320 100%);
+  cursor: pointer;
+  animation: cardReveal 0.6s ease;
+}
+
+@keyframes cardReveal {
+  0% { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+  100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+}
+
+.card-inner {
+  text-align: center;
+  padding: 8px;
+  color: var(--velvet);
+}
+
+.card-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: block;
+  line-height: 1;
+}
+
+.card-name {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.75rem;
+  font-style: italic;
+  display: block;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+.card-symbol {
+  font-size: 1.8rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.card-pos-label {
+  position: absolute;
+  bottom: 6px;
+  left: 0; right: 0;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(44,24,16,0.7);
+}
+
+.reading-btn {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--velvet);
+  padding: 18px 52px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 3px;
+  margin-bottom: 16px;
+}
+
+.reading-btn:hover { background: var(--gold-light); transform: translateY(-2px); }
+.reading-btn:active { transform: translateY(0); }
+
+.reading-result {
+  margin-top: 40px;
+  padding: 40px;
+  background: rgba(201,147,58,0.08);
+  border: 1px solid rgba(201,147,58,0.2);
+  border-radius: 4px;
+  display: none;
+  text-align: left;
+}
+
+.reading-result.visible { display: block; animation: fadeUp 0.8s ease; }
+
+.result-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--gold-light);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.result-cards-list {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.result-card-item {
+  padding: 20px;
+  background: rgba(201,147,58,0.08);
+  border-left: 3px solid var(--gold);
+  border-radius: 2px;
+}
+
+.result-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.result-card-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: var(--gold);
+  min-width: 32px;
+}
+
+.result-card-title {
+  font-family: 'IM Fell English', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--gold-pale);
+}
+
+.result-card-pos {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(240,234,216,0.5);
+  margin-left: auto;
+}
+
+.result-card-meaning {
+  font-size: 0.95rem;
+  color: rgba(240,234,216,0.85);
+  line-height: 1.8;
+}
+
+.result-synthesis {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(201,147,58,0.2);
+}
+
+.result-synthesis h4 {
+  font-family: 'Playfair Display', serif;
+  color: var(--gold-light);
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.result-synthesis p {
+  color: rgba(240,234,216,0.85);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.result-cta {
+  margin-top: 32px;
+  padding: 24px;
+  background: rgba(44,24,16,0.5);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.result-cta p {
+  color: var(--gold-pale);
+  font-style: italic;
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+
+/* ═══════════════════════════════════════════════
+   SOBRE
+═══════════════════════════════════════════════ */
+#sobre {
+  padding: 100px 24px;
+  background: var(--smoke);
+}
+
+.sobre-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.sobre-img-wrap {
+  position: relative;
+}
+
+.sobre-portrait {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: linear-gradient(145deg, var(--mystic) 0%, var(--velvet) 60%, #1a0a00 100%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.sobre-portrait::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 40% 30%, rgba(201,147,58,0.15), transparent 70%);
+}
+
+.sobre-portrait-inner {
+  text-align: center;
+  color: var(--gold-pale);
+  position: relative;
+  z-index: 1;
+}
+
+.sobre-portrait-inner p {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-style: italic;
+  margin-top: 12px;
+  letter-spacing: 0.1em;
+  color: var(--gold-light);
+}
+
+.sobre-frame {
+  position: absolute;
+  inset: -12px;
+  border: 1px solid rgba(201,147,58,0.4);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.sobre-text .section-label { text-align: left; }
+.sobre-text .section-title { text-align: left; }
+
+.sobre-text p {
+  font-size: 1.05rem;
+  color: #3a2a18;
+  margin-bottom: 20px;
+  line-height: 1.9;
+}
+
+.sobre-credenciais {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.credencial-tag {
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+  color: var(--velvet);
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* ═══════════════════════════════════════════════
+   SERVIÇOS
+═══════════════════════════════════════════════ */
+#servicos {
+  padding: 100px 24px;
+  background: var(--cream);
+}
+
+.servicos-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 72px;
+}
+
+.servicos-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.servico-card {
+  padding: 48px 36px;
+  border: 1px solid rgba(201,147,58,0.25);
+  border-radius: 4px;
+  background: var(--cream);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+.servico-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,147,58,0.05) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.servico-card:hover::before { opacity: 1; }
+.servico-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(26,16,8,0.1);
+}
+
+.servico-icon {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.servico-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--velvet);
+  margin-bottom: 12px;
+}
+
+.servico-desc {
+  font-size: 0.95rem;
+  color: #5a4030;
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+.servico-preco {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.servico-preco span {
+  font-size: 1rem;
+  color: #888;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.servico-destaque {
+  background: var(--velvet);
+  border-color: var(--gold) !important;
+}
+
+.servico-destaque .servico-title { color: var(--gold-pale); }
+.servico-destaque .servico-desc { color: rgba(240,234,216,0.75); }
+.servico-destaque .servico-preco { color: var(--gold); }
+.servico-destaque::before {
+  background: linear-gradient(135deg, rgba(201,147,58,0.1) 0%, transparent 60%);
+  opacity: 1;
+}
+
+.badge-destaque {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--gold);
+  color: var(--velvet);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* ═══════════════════════════════════════════════
+   CARTAS — GUIA RÁPIDO
+═══════════════════════════════════════════════ */
+#cartas {
+  padding: 100px 24px;
+  background: linear-gradient(180deg, var(--smoke) 0%, var(--cream) 100%);
+}
+
+.cartas-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 64px;
+}
+
+.cartas-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.carta-mini {
+  padding: 20px 14px;
+  border: 1px solid rgba(201,147,58,0.2);
+  border-radius: 6px;
+  background: var(--cream);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.carta-mini:hover {
+  border-color: var(--gold);
+  background: var(--gold-pale);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(201,147,58,0.15);
+}
+
+.carta-mini-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  display: block;
+}
+
+.carta-mini-sym {
+  font-size: 1.6rem;
+  display: block;
+  margin: 4px 0;
+}
+
+.carta-mini-name {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--velvet);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.carta-mini-key {
+  font-size: 0.7rem;
+  color: #888;
+  letter-spacing: 0.05em;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,16,8,0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box {
+  background: var(--velvet);
+  border: 1px solid rgba(201,147,58,0.4);
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  padding: 48px;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+
+.modal-overlay.open .modal-box { transform: translateY(0); }
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-sym { font-size: 3rem; text-align: center; display: block; margin-bottom: 8px; }
+
+.modal-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  color: var(--gold);
+  text-align: center;
+  letter-spacing: 0.2em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--gold-pale);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.modal-body p {
+  color: rgba(240,234,216,0.85);
+  font-size: 0.95rem;
+  line-height: 1.9;
+  margin-bottom: 16px;
+}
+
+.modal-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.modal-kw {
+  background: rgba(201,147,58,0.15);
+  border: 1px solid rgba(201,147,58,0.3);
+  color: var(--gold-light);
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: 20px;
+}
+
+/* ═══════════════════════════════════════════════
+   BLOG
+═══════════════════════════════════════════════ */
+#blog {
+  padding: 100px 24px;
+  background: var(--smoke);
+}
+
+.blog-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 64px;
+}
+
+.blog-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+.blog-card {
+  background: var(--cream);
+  border: 1px solid rgba(201,147,58,0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.blog-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 12px 40px rgba(201,147,58,0.12);
+  transform: translateY(-4px);
+}
+
+.blog-img {
+  height: 200px;
+  background: linear-gradient(135deg, var(--mystic) 0%, var(--velvet) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.blog-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(44,24,16,0.5));
+}
+
+.blog-img-tag {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: var(--gold);
+  color: var(--velvet);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  z-index: 1;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.blog-content {
+  padding: 28px 28px 24px;
+}
+
+.blog-date {
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.blog-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  color: var(--velvet);
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.blog-excerpt {
+  font-size: 0.9rem;
+  color: #5a4030;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.blog-read {
+  font-size: 0.8rem;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: gap 0.3s;
+}
+
+.blog-card:hover .blog-read { gap: 12px; }
+
+/* ═══════════════════════════════════════════════
+   DEPOIMENTOS
+═══════════════════════════════════════════════ */
+#depoimentos {
+  padding: 100px 24px;
+  background: var(--velvet);
+  color: var(--cream);
+}
+
+.depo-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 64px;
+}
+
+#depoimentos .section-label { color: var(--gold-light); }
+#depoimentos .section-title { color: var(--gold-pale); }
+
+.depo-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.depo-card {
+  padding: 36px;
+  border: 1px solid rgba(201,147,58,0.2);
+  border-radius: 6px;
+  background: rgba(201,147,58,0.05);
+  position: relative;
+}
+
+.depo-stars {
+  color: var(--gold);
+  font-size: 1rem;
+  margin-bottom: 16px;
+  letter-spacing: 3px;
+}
+
+.depo-text {
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(240,234,216,0.9);
+  line-height: 1.9;
+  margin-bottom: 20px;
+}
+
+.depo-quote {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  font-size: 4rem;
+  color: rgba(201,147,58,0.15);
+  font-family: 'Playfair Display', serif;
+  line-height: 1;
+}
+
+.depo-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.depo-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--mystic));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--cream);
+}
+
+.depo-name {
+  font-family: 'Playfair Display', serif;
+  color: var(--gold-pale);
+  font-size: 0.95rem;
+}
+
+.depo-city {
+  font-size: 0.75rem;
+  color: rgba(240,234,216,0.5);
+  letter-spacing: 0.1em;
+}
+
+/* ═══════════════════════════════════════════════
+   CONTATO / CTA
+═══════════════════════════════════════════════ */
+#contato {
+  padding: 100px 24px;
+  background: var(--cream);
+  text-align: center;
+}
+
+.contato-inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.contato-inner .section-title { font-size: clamp(2rem, 4vw, 3rem); }
+
+.contato-inner p {
+  font-size: 1.05rem;
+  color: #5a4030;
+  margin-bottom: 40px;
+  font-style: italic;
+}
+
+.contato-options {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.contato-canal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border: 1px solid rgba(201,147,58,0.4);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--velvet);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  transition: all 0.3s;
+}
+
+.contato-canal:hover {
+  background: var(--velvet);
+  color: var(--gold-pale);
+  border-color: var(--velvet);
+}
+
+.contato-canal span { font-size: 1.4rem; }
+
+/* ═══════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════ */
+footer {
+  background: var(--ink);
+  color: rgba(240,234,216,0.5);
+  padding: 48px 24px;
+  text-align: center;
+}
+
+footer .footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+footer p { font-size: 0.85rem; line-height: 2; }
+
+footer a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.footer-links {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: rgba(240,234,216,0.5);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover { color: var(--gold); }
+
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLL TO TOP
+═══════════════════════════════════════════════ */
+.scroll-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 48px;
+  height: 48px;
+  background: var(--gold);
+  color: var(--velvet);
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 99;
+  transform: translateY(10px);
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; }
+  .sobre-grid { grid-template-columns: 1fr; gap: 40px; }
+  .sobre-portrait { height: 300px; }
+  .tiragem-tabs { flex-direction: column; }
+  .cards-display { gap: 10px; }
+  .card-slot { width: 90px; height: 145px; }
+  .modal-box { padding: 32px 24px; }
+  .reading-result { padding: 24px; }
+}
+
+/* ═══════════════════════════════════════════════
+   SAUDAVELMENTE BRANDING V4
+═══════════════════════════════════════════════ */
+.brand-inline {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand-logo {
+  width:44px;
+  height:44px;
+  object-fit:contain;
+  border-radius:50%;
+  background: rgba(201,147,58,0.08);
+  padding:4px;
+}
+.brand-stack {
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+.brand-name {
+  font-family:'Playfair Display', serif;
+  font-size:1.15rem;
+  color: var(--gold);
+  letter-spacing:0.03em;
+}
+.brand-author {
+  font-family:'Cormorant Garamond', serif;
+  font-size:0.72rem;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color: rgba(44,24,16,0.68);
+}
+.hero-brand {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  margin-bottom:22px;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.15s;
+}
+.hero-brand-logo {
+  width:78px;
+  height:78px;
+  object-fit:contain;
+  border-radius:50%;
+  padding:8px;
+  background: rgba(201,147,58,0.08);
+  box-shadow: 0 12px 30px rgba(26,16,8,0.08);
+}
+.hero-brand-text {
+  font-family:'Playfair Display', serif;
+  font-size:1.05rem;
+  color:var(--gold);
+  letter-spacing:0.06em;
+}
+.hero-brand-author {
+  font-family:'Cormorant Garamond', serif;
+  font-size:0.8rem;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:rgba(44,24,16,0.72);
+}
+.servico-ebook {
+  background: linear-gradient(150deg, #1a0a00 0%, #2c1810 42%, #3d2b5e 100%);
+  border-color: var(--gold) !important;
+}
+.servico-ebook .servico-title { color: var(--gold-pale); }
+.servico-ebook .servico-desc { color: rgba(240,234,216,0.82); }
+.servico-ebook .servico-preco { color: var(--gold-light); }
+.servico-ebook::before {
+  background: linear-gradient(135deg, rgba(201,147,58,0.15) 0%, transparent 65%);
+  opacity: 1;
+}
+.servico-linkline {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  font-size:0.82rem;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color: var(--gold-light);
+  text-decoration:none;
+  transition: gap 0.3s ease, opacity 0.3s ease;
+}
+.servico-card:hover .servico-linkline { gap:16px; }
+.footer-branding {
+  margin-top: 14px;
+  font-size:0.78rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color: rgba(240,234,216,0.38);
+}
+@media (max-width: 768px) {
+  .brand-author { display:none; }
+  .hero-brand-logo { width:64px; height:64px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+<div class="nav-logo">
+  <div class="brand-inline">
+    <img class="brand-logo" src="data:image/png;base64," alt="Logo SaudavelMENTE">
+    <div class="brand-stack">
+      <div class="brand-name">SaudavelMENTE</div>
+      <div class="brand-author">Luís A. Pizarro</div>
+    </div>
+  </div>
+</div>
+
+  <ul class="nav-links">
+    <li><a href="#tiragem">Tiragem</a></li>
+    <li><a href="#cartas">As Cartas</a></li>
+    <li><a href="#servicos">Serviços</a></li>
+    <li><a href="#blog">Blog</a></li>
+    <li><a href="#contato" class="nav-cta">Consulta</a></li>
+  </ul>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <span class="hero-ornament">✦</span>
+  <span class="hero-ornament">✦</span>
+
+  <div class="hero-brand">
+    <img class="hero-brand-logo" src="data:image/png;base64," alt="Logo SaudavelMENTE">
+    <div>
+      <div class="hero-brand-text">SaudavelMENTE</div>
+      <div class="hero-brand-author">Luís A. Pizarro</div>
+    </div>
+  </div>
+
+  <p class="hero-eyebrow">Terapeuta Holístico · Especialista Lenormand</p>
+
+  <h1 class="hero-title">
+    As Cartas Falam
+    <em>o que o coração sente</em>
+  </h1>
+
+  <p class="hero-sub">Leitura de Cartas Ciganas Lenormand — instantânea ou personalizada. Acesse a sabedoria antiga que revela os caminhos invisíveis da sua vida.</p>
+
+  <div class="hero-actions">
+    <a href="#tiragem" class="btn-primary">Fazer Tiragem Grátis</a>
+    <a href="https://pag.ae/81DUQZUnL" target="_blank" class="btn-secondary">✦ Quero Minha Leitura</a>
+  </div>
+</section>
+
+<!-- ═══ TIRAGEM INSTANTÂNEA ═══ -->
+<section id="tiragem">
+  <div class="reading-container">
+    <p class="section-label fade-in">Tiragem Online · Instantânea</p>
+    <h2 class="section-title fade-in">Consulte as Cartas Agora</h2>
+    <p class="reading-desc fade-in">Concentre-se em sua pergunta, respire fundo e clique para revelar sua tiragem.</p>
+
+    <div class="tiragem-tabs">
+      <button class="tab-btn active" data-mode="1">1 Carta</button>
+      <button class="tab-btn" data-mode="3">3 Cartas</button>
+      <button class="tab-btn" data-mode="5">Cruz Cigana</button>
+    </div>
+
+    <div class="cards-display" id="cardsDisplay"></div>
+
+    <button class="reading-btn" id="drawBtn">✦ Revelar as Cartas ✦</button>
+
+    <div class="reading-result" id="readingResult">
+      <h3 class="result-title" id="resultTitle">A mensagem das cartas para você</h3>
+      <div class="result-cards-list" id="resultCards"></div>
+      <div class="result-synthesis" id="resultSynthesis"></div>
+      <div class="result-cta">
+        <p>Deseja uma interpretação completa e personalizada para sua situação?</p>
+        <a href="https://pag.ae/81DUQZUnL" target="_blank" class="btn-primary" style="display:inline-block;font-size:0.9rem;padding:14px 32px;">✦ Quero Minha Leitura Personalizada</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SOBRE ═══ -->
+<section id="sobre">
+  <div class="sobre-grid">
+    <div class="sobre-img-wrap fade-in">
+      <div class="sobre-portrait">
+        <div class="sobre-portrait-inner">
+          <div>🌙</div>
+          <p>Terapeuta &amp; Leitor</p>
+        </div>
+      </div>
+      <div class="sobre-frame"></div>
+    </div>
+
+    <div class="sobre-text fade-in">
+      <p class="section-label">Sobre o Terapeuta</p>
+      <h2 class="section-title">Uma vida dedicada às linguagens do invisível</h2>
+
+      <p>Sou Terapeuta Holístico especializado nas Cartas Ciganas Lenormand — o sistema oracular de 36 cartas criado no século XVIII que combina intuição, simbolismo e leitura energética para acessar padrões profundos da vida humana.</p>
+
+      <p>Ao longo de anos de estudo e prática, desenvolvi um método integrado de leitura que une o conhecimento técnico das cartas com a sensibilidade terapêutica, oferecendo mensagens que orientam sem determinar — porque cada pessoa tem seu próprio poder de escolha.</p>
+
+      <p>Atendo online para todo o Brasil, com agenda personalizada e materiais exclusivos para quem deseja aprender a arte da leitura Lenormand.</p>
+
+      <div class="sobre-credenciais">
+        <span class="credencial-tag">Terapeuta Holístico</span>
+        <span class="credencial-tag">Lenormand Avançado</span>
+        <span class="credencial-tag">Leitura Online</span>
+        <span class="credencial-tag">Cursos &amp; Mentoria</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SERVIÇOS ═══ -->
+<section id="servicos">
+  <div class="servicos-header fade-in">
+    <p class="section-label">Como Posso Ajudar</p>
+    <h2 class="section-title">Serviços de Leitura</h2>
+    <p style="color:#5a4030;font-style:italic;font-size:1.05rem;">Escolha a modalidade que mais se alinha à sua necessidade neste momento</p>
+  </div>
+
+  <div class="servicos-grid">
+    <a class="servico-card fade-in" href="https://pag.ae/81DUQz2-o" target="_blank">
+      <span class="servico-icon">🃏</span>
+      <h3 class="servico-title">Leitura Simples</h3>
+      <p class="servico-desc">Tiragem de 3 e,ou 7 cartas com resposta a uma pergunta objetiva. Via áudio ou texto, enviada em até 24h. Ideal para dúvidas pontuais.</p>
+      <div class="servico-preco">R$ 30 <span>/ consulta</span></div>
+      <span class="servico-linkline">Quero Minha Leitura →</span>
+    </a>
+
+    <a class="servico-card servico-destaque fade-in" href="https://pag.ae/81DUQZUnL" target="_blank">
+      <span class="badge-destaque">✦ Mais Procurado</span>
+      <span class="servico-icon">🔮</span>
+      <h3 class="servico-title">Leitura Personalizada</h3>
+      <p class="servico-desc">Consulta completa com o Grand Tableau (todas as 36 cartas) em Tiragem Temática por área (amor, trabalho, saúde, família). Sessão Online por Whatsapp.</p>
+      <div class="servico-preco">R$ 100 <span>/ sessão 60min</span></div>
+      <span class="servico-linkline">Quero Minha Leitura →</span>
+    </a>
+
+    <a class="servico-card fade-in" href="https://pag.ae/81DURzaYL" target="_blank">
+      <span class="servico-icon">📅</span>
+      <h3 class="servico-title">Mentoria Mensal</h3>
+      <p class="servico-desc">3 consultas mensais com acompanhamento da sua jornada. Inclui tiragem quinzenal, Real Grand Tableau com detalhes em PDF e exclusivos.</p>
+      <div class="servico-preco">R$ 180 <span>/ mês</span></div>
+      <span class="servico-linkline">Reservar Mentoria →</span>
+    </a>
+
+    <a class="servico-card fade-in" href="https://pag.ae/81DUS7J2L" target="_blank">
+      <span class="servico-icon">🎓</span>
+      <h3 class="servico-title">Curso Lenormand</h3>
+      <p class="servico-desc">Aprenda a ler as Cartas Ciganas Lenormand do zero ao avançado. Módulos em vídeo, apostila exclusiva, exercícios e suporte individual.</p>
+      <div class="servico-preco">R$ 499 <span>/ curso completo</span></div>
+      <span class="servico-linkline">Acessar Curso →</span>
+    </a>
+    <a class="servico-card servico-ebook fade-in" href="landing-page-trilogia-lenormand-SAUDAVELMENTE-v3.html">
+      <span class="badge-destaque">✦ Novo · Ebooks</span>
+      <span class="servico-icon">📚</span>
+      <h3 class="servico-title">Trilogia de Ebooks Lenormand</h3>
+      <p class="servico-desc">Do zero à maestria nas Cartas Ciganas Lenormand. Uma trilogia premium com fundamentos, combinações, Grand Tableau e prática terapêutica para estudo e aprofundamento.</p>
+      <div class="servico-preco">3 Volumes <span>/ acesso à página oficial</span></div>
+      <span class="servico-linkline">Conhecer a trilogia completa →</span>
+    </a>
+
+  </div>
+
+  <div style="text-align:center;margin-top:48px;" class="fade-in">
+    <a href="#contato" class="btn-primary">Agendar Consulta</a>
+  </div>
+</section>
+
+<!-- ═══ AS CARTAS ═══ -->
+<section id="cartas">
+  <div class="cartas-header fade-in">
+    <p class="section-label">As 36 Cartas Ciganas</p>
+    <h2 class="section-title">Guia das Cartas Lenormand</h2>
+    <p style="color:#5a4030;font-style:italic;font-size:1.05rem;">Clique em qualquer carta para ver seu significado completo</p>
+  </div>
+
+  <div class="cartas-grid" id="cartasGrid"></div>
+
+  <div style="text-align:center;" class="fade-in">
+    <a href="#tiragem" class="btn-secondary">Fazer uma Tiragem Agora</a>
+  </div>
+</section>
+
+<!-- ═══ BLOG ═══ -->
+<section id="blog">
+  <div class="blog-header fade-in">
+    <p class="section-label">Saberes &amp; Reflexões</p>
+    <h2 class="section-title">Blog das Cartas</h2>
+    <p style="color:#5a4030;font-style:italic;font-size:1.05rem;">Aprofunde seu conhecimento sobre as Cartas Ciganas Lenormand</p>
+  </div>
+
+  <div class="blog-grid">
+    <div class="blog-card fade-in">
+      <div class="blog-img" style="background:linear-gradient(135deg,#2c1810,#3d2b5e);">
+        🌙
+        <span class="blog-img-tag">Fundamentos</span>
+      </div>
+      <div class="blog-content">
+        <span class="blog-date">Março 2026</span>
+        <h3 class="blog-title">Como se conectar com as Cartas Ciganas antes de uma tiragem</h3>
+        <p class="blog-excerpt">A preparação antes de uma consulta Lenormand é tão importante quanto a leitura em si. Aprenda os rituais de centralização que potencializam a qualidade das mensagens.</p>
+        <a href="#blog" class="blog-read">Ler artigo →</a>
+      </div>
+    </div>
+
+    <div class="blog-card fade-in">
+      <div class="blog-img" style="background:linear-gradient(135deg,#1a3a2a,#2c1810);">
+        🃏
+        <span class="blog-img-tag">Técnica</span>
+      </div>
+      <div class="blog-content">
+        <span class="blog-date">Fevereiro 2026</span>
+        <h3 class="blog-title">O Grand Tableau: a tiragem completa das 36 cartas explicada</h3>
+        <p class="blog-excerpt">O Grand Tableau é a tiragem mais poderosa do sistema Lenormand. Entenda como as 36 cartas se organizam em casa posicional e como ler suas combinações.</p>
+        <a href="#blog" class="blog-read">Ler artigo →</a>
+      </div>
+    </div>
+
+    <div class="blog-card fade-in">
+      <div class="blog-img" style="background:linear-gradient(135deg,#3d2b1a,#1a1040);">
+        💛
+        <span class="blog-img-tag">Combinações</span>
+      </div>
+      <div class="blog-content">
+        <span class="blog-date">Janeiro 2026</span>
+        <h3 class="blog-title">Carta do Coração: significados, combinações e posições na tiragem</h3>
+        <p class="blog-excerpt">A Carta 24 — o Coração — é uma das mais multifacetadas do baralho. Veja como ela se transforma dependendo das cartas vizinhas e da área da vida consultada.</p>
+        <a href="#blog" class="blog-read">Ler artigo →</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;" class="fade-in">
+    <a href="#blog" class="btn-secondary">Ver Todos os Artigos</a>
+  </div>
+</section>
+
+<!-- ═══ DEPOIMENTOS ═══ -->
+<section id="depoimentos">
+  <div class="depo-header fade-in">
+    <p class="section-label">Experiências Reais</p>
+    <h2 class="section-title">O que dizem as consulentes</h2>
+  </div>
+
+  <div class="depo-grid">
+    <div class="depo-card fade-in">
+      <div class="depo-stars">★★★★★</div>
+      <div class="depo-quote">"</div>
+      <p class="depo-text">A leitura foi cirúrgica. As cartas apontaram exatamente o conflito que eu estava vivendo no trabalho mas não conseguia nomear. Saí da consulta com clareza e um caminho real à frente.</p>
+      <div class="depo-author">
+        <div class="depo-avatar">M</div>
+        <div>
+          <div class="depo-name">Mariana F.</div>
+          <div class="depo-city">São Paulo · SP</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="depo-card fade-in">
+      <div class="depo-stars">★★★★★</div>
+      <div class="depo-quote">"</div>
+      <p class="depo-text">Fiz três consultas ao longo do ano e cada uma trouxe exatamente o que eu precisava ouvir naquele momento. A leitura do Grand Tableau foi a mais reveladora que já tive.</p>
+      <div class="depo-author">
+        <div class="depo-avatar">C</div>
+        <div>
+          <div class="depo-name">Carla T.</div>
+          <div class="depo-city">Florianópolis · SC</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="depo-card fade-in">
+      <div class="depo-stars">★★★★★</div>
+      <div class="depo-quote">"</div>
+      <p class="depo-text">Sou cético por natureza, mas a precisão das combinações de cartas me surpreendeu. Também fiz o curso e hoje consigo fazer minhas próprias leituras. Recomendo muito.</p>
+      <div class="depo-author">
+        <div class="depo-avatar">R</div>
+        <div>
+          <div class="depo-name">Rafael M.</div>
+          <div class="depo-city">Curitiba · PR</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTATO ═══ -->
+<section id="contato">
+  <div class="contato-inner fade-in">
+    <p class="section-label">Vamos Conversar</p>
+    <h2 class="section-title">Agendar Consulta</h2>
+    <p>Escolha o canal de sua preferência para marcar sua leitura personalizada ou tirar dúvidas sobre os serviços.</p>
+
+    <div class="contato-options">
+      <a href="https://wa.me/5548999999999" class="contato-canal">
+        <span>💬</span> WhatsApp
+      </a>
+      <a href="mailto:contato@ciganas-lenormand.com.br" class="contato-canal">
+        <span>✉️</span> E-mail
+      </a>
+      <a href="https://instagram.com/" class="contato-canal">
+        <span>📷</span> Instagram
+      </a>
+    </div>
+
+    <p style="font-size:0.85rem;color:#888;letter-spacing:0.1em;">Atendimento online · Segunda a Sábado · 9h às 20h</p>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-logo">SaudavelMENTE · Cartas Ciganas Lenormand</div>
+  <div class="footer-branding">Luís A. Pizarro · Método, leitura e formação Lenormand</div>
+  <div class="footer-links">
+    <a href="#tiragem">Tiragem</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#servicos">Serviços</a>
+    <a href="#cartas">As Cartas</a>
+    <a href="#blog">Blog</a>
+    <a href="#contato">Contato</a>
+  </div>
+  <p>© 2026 SaudavelMENTE · Luís A. Pizarro · Terapia Holística e Oraculares · Florianópolis, SC</p>
+  <p style="margin-top:8px;font-size:0.75rem;">As leituras de cartas têm caráter terapêutico e orientador, não substituindo acompanhamento médico ou psicológico.</p>
+</footer>
+
+<button class="scroll-top" id="scrollTop">↑</button>
+
+<!-- Modal das cartas -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose">✕</button>
+    <span class="modal-sym" id="modalSym"></span>
+    <span class="modal-num" id="modalNum"></span>
+    <h3 class="modal-title" id="modalTitle"></h3>
+    <div class="modal-body">
+      <p id="modalDesc"></p>
+      <p id="modalLove" style="display:none"></p>
+      <div class="modal-keywords" id="modalKws"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DADOS DAS 36 CARTAS LENORMAND
+// ═══════════════════════════════════════════
+const CARTAS = [
+  { n:1, sym:"🐴", name:"O Cavaleiro", key:"Novidades · Movimento", desc:"Representa chegada de notícias, mensagens e movimentos rápidos. Pode indicar uma pessoa jovem e dinâmica, ou algo que está a caminho.", love:"Em amor, sugere novidades na relação ou chegada de alguém novo.", kws:["Notícias","Rapidez","Mensagem","Chegada","Movimento"] },
+  { n:2, sym:"🍀", name:"O Trevo", key:"Sorte · Pequenas alegrias", desc:"A carta da pequena fortuna e das felicidades cotidianas. Indica sorte, oportunidades passageiras e momentos de leveza e alívio.", love:"Em amor, pequenos momentos felizes e harmonia no dia a dia.", kws:["Sorte","Oportunidade","Alegria","Leveza","Acaso"] },
+  { n:3, sym:"🚢", name:"O Navio", key:"Viagem · Movimento distante", desc:"Simboliza viagens, mudanças, comércio e desejos que viajam longe. Pode representar um negócio, uma aspiração ou uma jornada literal.", love:"Em amor, pode indicar distância física ou um amor que vem de longe.", kws:["Viagem","Comércio","Distância","Mudança","Horizonte"] },
+  { n:4, sym:"🏠", name:"A Casa", key:"Lar · Família · Segurança", desc:"Representa o lar, a família, a segurança e o ambiente doméstico. Indica estabilidade, raízes e o espaço onde nos sentimos protegidos.", love:"Em amor, lar compartilhado, comprometimento, vida em família.", kws:["Lar","Família","Segurança","Estabilidade","Raízes"] },
+  { n:5, sym:"🌳", name:"A Árvore", key:"Saúde · Crescimento · Raízes", desc:"A carta da saúde, do crescimento lento e das raízes profundas. Representa vitalidade, herança familiar e processos de longo prazo.", love:"Em amor, relacionamento com raízes profundas e crescimento mútuo.", kws:["Saúde","Crescimento","Raízes","Herança","Longo prazo"] },
+  { n:6, sym:"☁️", name:"As Nuvens", key:"Confusão · Dúvida · Bloqueio", desc:"Representa confusão, incerteza e situações nebulosas. O lado escuro indica obstáculos; o lado claro, que a névoa vai se dissipar.", love:"Em amor, mal-entendidos, falta de clareza sobre sentimentos.", kws:["Confusão","Incerteza","Dúvida","Bloqueio","Névoa"] },
+  { n:7, sym:"🐍", name:"A Serpente", key:"Sabedoria · Complicação · Rival", desc:"Carta de dupla natureza: pode indicar sabedoria e transformação, ou complicação, traição e uma mulher rival. Exige atenção ao contexto.", love:"Em amor, rival, ciúme, situação complicada ou sedução.", kws:["Sabedoria","Traição","Rival","Complicação","Sedução"] },
+  { n:8, sym:"⚰️", name:"O Caixão", key:"Fim · Transformação · Luto", desc:"Representa endings, transformações e encerramentos de ciclos. Não é necessariamente negativa — todo fim abre espaço para um novo começo.", love:"Em amor, fim de relacionamento ou transformação profunda da relação.", kws:["Fim","Transformação","Encerramento","Luto","Renascimento"] },
+  { n:9, sym:"💐", name:"O Buquê", key:"Presentes · Alegria · Beleza", desc:"Carta de alegria, presentes, elogios e situações agradáveis. Representa reconhecimento, gratidão e relacionamentos harmoniosos.", love:"Em amor, declarações, romanticismo, relacionamento florido.", kws:["Alegria","Presente","Beleza","Reconhecimento","Gratidão"] },
+  { n:10, sym:"🔪", name:"A Foice", key:"Corte · Decisão · Urgência", desc:"Representa cortes rápidos, decisões súbitas e separações. Pode indicar uma situação de urgência ou a necessidade de agir de forma definitiva.", love:"Em amor, ruptura, separação súbita ou decisão importante.", kws:["Corte","Decisão","Urgência","Separação","Mudança abrupta"] },
+  { n:11, sym:"🌿", name:"O Chicote", key:"Conflito · Repetição · Discussão", desc:"Indica discussões, conflitos repetitivos e situações de tensão. Pode também representar disciplina, esporte e padrões que se repetem.", love:"Em amor, brigas recorrentes, tensão sexual ou relação de dominância.", kws:["Conflito","Discussão","Repetição","Tensão","Disciplina"] },
+  { n:12, sym:"🦅", name:"Os Pássaros", key:"Comunicação · Nervosismo · Casal", desc:"Representa conversas, comunicação e o nervosismo que acompanha as palavras. Também indica um casal ou dois indivíduos em diálogo.", love:"Em amor, conversa de casal, declarações, mas também ansiedade.", kws:["Comunicação","Conversa","Nervosismo","Casal","Palavras"] },
+  { n:13, sym:"👧", name:"A Criança", key:"Novidade · Inocência · Início", desc:"Simboliza novos começos, inocência e algo pequeno que ainda está crescendo. Pode representar uma criança real ou um projeto em fase inicial.", love:"Em amor, nova fase, primeiro amor, ingenuidade nos sentimentos.", kws:["Novidade","Inocência","Início","Criança","Desenvolvimento"] },
+  { n:14, sym:"🦊", name:"A Raposa", key:"Esperteza · Cautela · Engano", desc:"Carta de astúcia, cautela e possível engano. Indica que algo não está sendo o que parece, ou que é preciso usar a inteligência estratégica.", love:"Em amor, alerta para enganos, pessoa dissimulada ou jogo duplo.", kws:["Esperteza","Engano","Cautela","Estratégia","Dissimulação"] },
+  { n:15, sym:"🐻", name:"O Urso", key:"Força · Proteção · Poder", desc:"Representa força, autoridade e proteção. Pode indicar uma figura de poder, uma pessoa protetora, ou a necessidade de ser mais assertivo.", love:"Em amor, parceiro forte e protetor, mas também possessividade.", kws:["Força","Autoridade","Proteção","Poder","Assertividade"] },
+  { n:16, sym:"⭐", name:"A Estrela", key:"Esperança · Guia · Sucesso", desc:"A carta da esperança, orientação espiritual e sucesso. Indica que está no caminho certo, que há luz na direção que segue.", love:"Em amor, relação harmoniosa, conexão espiritual, alma gêmea.", kws:["Esperança","Sucesso","Orientação","Luz","Realização"] },
+  { n:17, sym:"🦢", name:"A Cegonha", key:"Mudança · Renovação · Chegada", desc:"Simboliza grandes mudanças positivas, renovação e chegada de algo novo e desejado. Pode indicar gravidez, mudança de fase ou de residência.", love:"Em amor, chegada de um novo amor ou nova fase no relacionamento.", kws:["Mudança","Renovação","Chegada","Gravidez","Nova fase"] },
+  { n:18, sym:"🐕", name:"O Cachorro", key:"Amizade · Lealdade · Fidelidade", desc:"Representa amizade verdadeira, lealdade e fidelidade. Indica um amigo confiável ou a necessidade de cercar-se de pessoas leais.", love:"Em amor, parceiro fiel e amigo, base de amizade no relacionamento.", kws:["Amizade","Lealdade","Fidelidade","Companheirismo","Confiança"] },
+  { n:19, sym:"🏰", name:"A Torre", key:"Isolamento · Estrutura · Autoridade", desc:"Indica isolamento, estruturas rígidas e autoridade. Pode representar uma instituição, solidão ou a necessidade de construir limites saudáveis.", love:"Em amor, distância emocional, relação fria ou baseada em estrutura.", kws:["Isolamento","Autoridade","Estrutura","Solidão","Limite"] },
+  { n:20, sym:"🌳", name:"O Jardim", key:"Social · Público · Reunião", desc:"Representa o espaço público, encontros sociais e tudo o que está à mostra para o mundo. Indica redes de relacionamento e visibilidade.", love:"Em amor, relacionamento público, encontros e vida social do casal.", kws:["Social","Público","Reunião","Visibilidade","Rede"] },
+  { n:21, sym:"⛰️", name:"A Montanha", key:"Obstáculo · Desafio · Paciência", desc:"Indica obstáculos sérios, desafios e a necessidade de paciência e perseverança. O obstáculo pode ser vencido, mas exigirá esforço.", love:"Em amor, obstáculos no relacionamento, distância ou dificuldades.", kws:["Obstáculo","Desafio","Paciência","Perseverança","Dificuldade"] },
+  { n:22, sym:"🛤️", name:"O Caminho", key:"Escolha · Decisão · Direção", desc:"Carta das escolhas e encruzilhadas. Indica um momento de decisão importante sobre qual caminho seguir. Peça orientação antes de decidir.", love:"Em amor, decisão sobre o relacionamento, diferentes caminhos.", kws:["Escolha","Decisão","Encruzilhada","Direção","Alternativas"] },
+  { n:23, sym:"🐀", name:"Os Ratos", key:"Perda · Desgaste · Preocupação", desc:"Indica perdas, desgaste e preocupações. Algo está sendo corroído pouco a pouco. Atenção a situações de estresse e depleção de recursos.", love:"Em amor, relacionamento desgastado, traição oculta ou decepção.", kws:["Perda","Desgaste","Preocupação","Corrupção","Atenção"] },
+  { n:24, sym:"❤️", name:"O Coração", key:"Amor · Emoção · Sentimento", desc:"A carta do amor, dos sentimentos profundos e das emoções. Indica amor verdadeiro, paixão e conexão emocional genuína.", love:"Em amor, sentimentos verdadeiros, apaixonamento, declaração.", kws:["Amor","Emoção","Sentimento","Paixão","Conexão"] },
+  { n:25, sym:"💍", name:"O Anel", key:"Compromisso · Aliança · Contrato", desc:"Representa compromissos, alianças, contratos e ciclos completos. Pode indicar casamento, parceria de negócios ou um acordo importante.", love:"Em amor, noivado, casamento, fidelidade ou ciclo que se completa.", kws:["Compromisso","Aliança","Contrato","Casamento","Ciclo"] },
+  { n:26, sym:"📚", name:"O Livro", key:"Segredo · Conhecimento · Estudo", desc:"Indica segredos, conhecimento oculto e estudo. Pode representar algo que ainda não foi revelado, ou a necessidade de buscar mais informação.", love:"Em amor, segredos no relacionamento, passado oculto ou estudos compartilhados.", kws:["Segredo","Conhecimento","Estudo","Revelação","Oculto"] },
+  { n:27, sym:"✉️", name:"A Carta", key:"Mensagem · Documento · Comunicação", desc:"Representa documentos, mensagens escritas e comunicações formais. Pode indicar uma carta, contrato, e-mail ou notificação importante.", love:"Em amor, mensagem esperada, declaração escrita ou documentação.", kws:["Mensagem","Documento","Comunicação","Notícia","Carta"] },
+  { n:28, sym:"👨", name:"O Homem", key:"Homem · Figura masculina", desc:"A carta do consulente masculino ou de uma figura masculina importante na situação. O significado depende muito do contexto e das cartas ao redor.", love:"Em amor, o parceiro, pretendente ou figura masculina envolvida.", kws:["Homem","Masculino","Consulente","Parceiro","Figura"] },
+  { n:29, sym:"👩", name:"A Mulher", key:"Mulher · Figura feminina", desc:"A carta da consulente feminina ou de uma figura feminina importante. Assim como o Homem, seu significado se amplifica pelas cartas vizinhas.", love:"Em amor, a parceira, a consulente ou uma mulher relevante na situação.", kws:["Mulher","Feminino","Consulente","Parceira","Figura"] },
+  { n:30, sym:"🌹", name:"Os Lírios", key:"Paz · Harmonia · Maturidade", desc:"Carta da paz, harmonia e sabedoria madura. Pode indicar uma pessoa mais velha e experiente, ou um período de serenidade e equilíbrio.", love:"Em amor, relacionamento maduro e tranquilo, amor sereno e equilibrado.", kws:["Paz","Harmonia","Maturidade","Serenidade","Equilíbrio"] },
+  { n:31, sym:"☀️", name:"O Sol", key:"Sucesso · Energia · Clareza", desc:"A carta mais positiva do baralho. Indica sucesso, clareza, energia e vitalidade. Tudo que toca se ilumina. É um excelente presságio.", love:"Em amor, relacionamento feliz, alegria compartilhada, clareza nos sentimentos.", kws:["Sucesso","Energia","Clareza","Alegria","Vitória"] },
+  { n:32, sym:"🌙", name:"A Lua", key:"Intuição · Emoção · Reconhecimento", desc:"Representa a intuição, o inconsciente, as emoções profundas e o reconhecimento público. É a carta dos ciclos e da sensibilidade elevada.", love:"Em amor, romance, sensibilidade, amor idealizado e conexão intuitiva.", kws:["Intuição","Emoção","Ciclo","Reconhecimento","Inconsciente"] },
+  { n:33, sym:"🗝️", name:"A Chave", key:"Solução · Acesso · Desbloqueio", desc:"Indica soluções, desbloqueio e acesso a algo antes inacessível. É a carta que abre portas e resolve situações complicadas.", love:"Em amor, solução para problemas do relacionamento, acesso ao coração do outro.", kws:["Solução","Acesso","Desbloqueio","Resposta","Revelação"] },
+  { n:34, sym:"🐟", name:"O Peixe", key:"Abundância · Finanças · Fluxo", desc:"Carta da abundância, fluxo financeiro e prosperidade. Indica riqueza, bons negócios e circulação saudável de recursos.", love:"Em amor, generosidade, fluxo de sentimentos e abundância emocional.", kws:["Abundância","Finanças","Prosperidade","Fluxo","Negócios"] },
+  { n:35, sym:"⚓", name:"A Âncora", key:"Estabilidade · Persistência · Trabalho", desc:"Representa estabilidade, persistência e o trabalho que mantém alguém ancorado. Indica segurança conquistada com esforço e dedicação.", love:"Em amor, relacionamento estável e seguro, compromisso de longo prazo.", kws:["Estabilidade","Persistência","Trabalho","Segurança","Ancoragem"] },
+  { n:36, sym:"⚜️", name:"A Cruz", key:"Karma · Destino · Peso espiritual", desc:"A carta do karma, do destino e das cargas espirituais. Pode indicar uma missão de vida, uma responsabilidade ou um fardo a ser carregado com consciência.", love:"Em amor, relação kármica, laços profundos e responsabilidades compartilhadas.", kws:["Karma","Destino","Espiritualidade","Missão","Fardo"] },
+];
+
+// ═══════════════════════════════════════════
+// TIRAGENS
+// ═══════════════════════════════════════════
+const MODES = {
+  1: { count: 1, labels: ["A Mensagem"] },
+  3: { count: 3, labels: ["Passado", "Presente", "Futuro"] },
+  5: { count: 5, labels: ["Centro", "Acima", "Abaixo", "Esquerda", "Direita"] }
+};
+
+let currentMode = 1;
+let drawnCards = [];
+
+function renderSlots() {
+  const display = document.getElementById('cardsDisplay');
+  const mode = MODES[currentMode];
+  display.innerHTML = '';
+  for (let i = 0; i < mode.count; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'card-slot';
+    slot.innerHTML = `<span style="color:rgba(201,147,58,0.3);font-size:2rem;">✦</span>`;
+    display.appendChild(slot);
+  }
+  document.getElementById('readingResult').classList.remove('visible');
+}
+
+function drawCards() {
+  const mode = MODES[currentMode];
+  const shuffled = [...CARTAS].sort(() => Math.random() - 0.5);
+  drawnCards = shuffled.slice(0, mode.count);
+
+  const slots = document.querySelectorAll('.card-slot');
+  slots.forEach((slot, i) => {
+    setTimeout(() => {
+      slot.classList.add('revealed');
+      slot.innerHTML = `
+        <div class="card-inner">
+          <span class="card-symbol">${drawnCards[i].sym}</span>
+          <span class="card-number">${drawnCards[i].n}</span>
+          <span class="card-name">${drawnCards[i].name}</span>
+        </div>
+        <span class="card-pos-label">${mode.labels[i]}</span>
+      `;
+    }, i * 300);
+  });
+
+  setTimeout(() => showResult(), mode.count * 300 + 400);
+}
+
+function showResult() {
+  const mode = MODES[currentMode];
+  const result = document.getElementById('readingResult');
+  const cardsEl = document.getElementById('resultCards');
+  const synthesis = document.getElementById('resultSynthesis');
+
+  cardsEl.innerHTML = '';
+  drawnCards.forEach((card, i) => {
+    cardsEl.innerHTML += `
+      <div class="result-card-item">
+        <div class="result-card-header">
+          <span class="result-card-num">${card.sym} ${card.n}.</span>
+          <span class="result-card-title">${card.name}</span>
+          <span class="result-card-pos">${mode.labels[i]}</span>
+        </div>
+        <p class="result-card-meaning">${card.desc}</p>
+      </div>
+    `;
+  });
+
+  const synText = buildSynthesis(drawnCards, mode.labels);
+  synthesis.innerHTML = `
+    <h4>✦ Síntese da Tiragem</h4>
+    <p>${synText}</p>
+  `;
+
+  result.classList.add('visible');
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildSynthesis(cards, labels) {
+  if (cards.length === 1) {
+    return `A carta ${cards[0].name} chega como mensagem central: "${cards[0].desc}" Reflita sobre como essa energia está presente em sua vida agora.`;
+  }
+  if (cards.length === 3) {
+    return `A jornada revelada pelas cartas mostra: no ${labels[0]}, ${cards[0].name} deixou suas marcas — ${cards[0].key.toLowerCase()}. No ${labels[1]}, ${cards[1].name} governa o momento presente com sua energia de ${cards[1].key.toLowerCase()}. Olhando para o ${labels[2]}, ${cards[2].name} aponta o horizonte: ${cards[2].key.toLowerCase()}. Considere como esses fios se conectam na tapeçaria de sua vida.`;
+  }
+  return `No centro de tudo, ${cards[0].name} define a essência da situação. As cartas ao redor — ${cards.slice(1).map(c => c.name).join(', ')} — revelam as influências que atuam sobre esse núcleo. Este é um momento de observação e integração das diferentes forças em jogo.`;
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = parseInt(btn.dataset.mode);
+    renderSlots();
+  });
+});
+
+document.getElementById('drawBtn').addEventListener('click', drawCards);
+
+// ═══════════════════════════════════════════
+// GRADE DE CARTAS
+// ═══════════════════════════════════════════
+function renderCartasGrid() {
+  const grid = document.getElementById('cartasGrid');
+  CARTAS.forEach(carta => {
+    const el = document.createElement('div');
+    el.className = 'carta-mini fade-in';
+    el.innerHTML = `
+      <span class="carta-mini-num">${carta.n}</span>
+      <span class="carta-mini-sym">${carta.sym}</span>
+      <span class="carta-mini-name">${carta.name}</span>
+      <span class="carta-mini-key">${carta.key}</span>
+    `;
+    el.addEventListener('click', () => openModal(carta));
+    grid.appendChild(el);
+  });
+}
+
+function openModal(carta) {
+  document.getElementById('modalSym').textContent = carta.sym;
+  document.getElementById('modalNum').textContent = `Carta nº ${carta.n}`;
+  document.getElementById('modalTitle').textContent = carta.name;
+  document.getElementById('modalDesc').textContent = carta.desc;
+  const love = document.getElementById('modalLove');
+  love.textContent = carta.love;
+  love.style.display = 'block';
+  const kwsEl = document.getElementById('modalKws');
+  kwsEl.innerHTML = carta.kws.map(k => `<span class="modal-kw">${k}</span>`).join('');
+  document.getElementById('cardModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('cardModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+function closeModal() {
+  document.getElementById('cardModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ═══════════════════════════════════════════
+// SCROLL ANIMATIONS
+// ═══════════════════════════════════════════
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+function initObserver() {
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+}
+
+// Scroll top button
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+});
+scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderSlots();
+  renderCartasGrid();
+  initObserver();
+});
+</script>
+</body>
+</html>
